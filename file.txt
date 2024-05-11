@@ -1,0 +1,1 @@
+psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5433" failed: FATAL:  role "jord" does not exist

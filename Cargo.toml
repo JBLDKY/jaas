@@ -3,4 +3,31 @@ name = "jaas"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+path = "src/main.rs"
+name = "jaas"
+
+[dependencies.sqlx]
+version = "0.7"
+default-features = false
+features = [
+"runtime-tokio-rustls",
+"macros",
+"postgres",
+"uuid",
+"chrono",
+"migrate"
+]
+
+
+
+
 [dependencies]
+actix-web = "4"
+config = "0.14.0"
+reqwest = "0.12.4"
+serde = { version = "1.0.201", features = ["derive"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
