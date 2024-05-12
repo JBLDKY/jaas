@@ -1,10 +1,16 @@
 use jaas::{
     configuration::{get_configuration, DatabaseSettings},
     startup::run,
+    telemetry::{get_subscriber, init_subscriber},
 };
+use once_cell::sync::Lazy;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
 use uuid::Uuid;
+
+static TRACING: Lazy<()> = Lazy::new(|| {
+    init_subscriber(get_subscriber("test".into(), "debug".into()));
+});
 
 #[derive(Debug)]
 pub struct TestApp {
@@ -13,6 +19,7 @@ pub struct TestApp {
 }
 
 async fn spawn_app() -> TestApp {
+    Lazy::force(&TRACING);
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind to random port");
     let port = listener.local_addr().unwrap().port();
     let address = format!("http://127.0.0.1:{}", port);
