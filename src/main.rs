@@ -1,7 +1,6 @@
 use jaas::configuration::get_configuration;
 use jaas::startup::run;
 use jaas::telemetry::{get_subscriber, init_subscriber};
-use secrecy::ExposeSecret;
 use sqlx::PgPool;
 use std::net::TcpListener;
 
