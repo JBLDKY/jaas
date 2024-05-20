@@ -1,2 +1,5 @@
 application:
   host: 0.0.0.0
+email_client: 
+  base_url: "https://us22.api.mailchimp.com/3.0"
+  sender_email: "something@gmail.com"
