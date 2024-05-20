@@ -1,4 +1,4 @@
-use jaas::email_client::EmailClient;
+use jaas::email_client::{self, EmailClient};
 use jaas::{
     configuration::{get_configuration, DatabaseSettings},
     startup::run,
@@ -44,10 +44,12 @@ async fn spawn_app() -> TestApp {
         .email_client
         .sender()
         .expect("Invalid sender email address");
+    let timeout = config.email_client.timeout();
     let email_client = EmailClient::new(
         config.email_client.base_url,
         sender_email,
         config.email_client.authorization_token,
+        timeout,
     );
 
     let server = run(listener, pool.clone(), email_client).expect("Failed to bind to address");

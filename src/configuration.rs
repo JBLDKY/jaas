@@ -15,7 +15,7 @@ pub struct EmailClientSettings {
     pub base_url: String,
     pub sender_email: String,
     pub authorization_token: Secret<String>,
-    pub timeout_millicesonds: u64,
+    pub timeout_milliseconds: u64,
 }
 
 impl EmailClientSettings {
@@ -24,7 +24,7 @@ impl EmailClientSettings {
     }
 
     pub fn timeout(&self) -> std::time::Duration {
-        std::time::Duration::from_millis(self.timeout_millicesonds)
+        std::time::Duration::from_millis(self.timeout_milliseconds)
     }
 }
 
