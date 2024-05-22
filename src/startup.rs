@@ -1,11 +1,67 @@
+use crate::configuration::{DatabaseSettings, Environment, Settings};
 use crate::email_client::EmailClient;
+use crate::routes::{health_check, subscribe};
 use actix_web::dev::Server;
 use actix_web::{web, App, HttpServer};
+use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use std::net::TcpListener;
 use tracing_actix_web::TracingLogger;
 
-use crate::routes::{health_check, subscribe};
+pub struct Application {
+    port: u16,
+    server: Server,
+}
+impl Application {
+    pub async fn build(config: Settings) -> Result<Self, std::io::Error> {
+        let address = format!("{}:{}", config.application.host, config.application.port);
+
+        let environment = std::env::var("APP_ENVIRONMENT")
+            .unwrap_or_else(|_| "local".into())
+            .try_into()
+            .expect("Failed to parse APP_ENVIRONMENT");
+
+        let pool = match environment {
+            Environment::Production => {
+                // FLY IO just kinda gives u the URL so ¯\_(ツ)_/¯
+                PgPool::connect_lazy(&std::env::var("DATABASE_URL").unwrap()).unwrap()
+            }
+            Environment::Local => get_connection_pool(&config.database),
+        };
+
+        let sender_email = config
+            .email_client
+            .sender()
+            .expect("Invalid sender email address");
+
+        let timeout = config.email_client.timeout();
+        let email_client = EmailClient::new(
+            config.email_client.base_url,
+            sender_email,
+            config.email_client.authorization_token,
+            timeout,
+        );
+
+        let listener = TcpListener::bind(address).expect("Failed to bind to random port");
+
+        let port = listener.local_addr().unwrap().port();
+        let server = run(listener, pool, email_client)?;
+
+        Ok(Self { port, server })
+    }
+
+    pub fn port(&self) -> u16 {
+        self.port
+    }
+
+    pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
+        self.server.await
+    }
+}
+
+pub fn get_connection_pool(config: &DatabaseSettings) -> PgPool {
+    PgPoolOptions::new().connect_lazy_with(config.with_db())
+}
 
 pub fn run(
     listener: TcpListener,
