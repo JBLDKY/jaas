@@ -51,22 +51,7 @@ pub async fn subscribe(
         return HttpResponse::InternalServerError().finish();
     };
 
-    let confirmation_link = "https://there-is-no-such-domain.com/subscriptions/confirm";
-
-    if email_client
-        .send_email(
-            new_subscriber.email,
-            "Welcome!",
-            &format!(
-                "Welcome to our newsletter!<br />\
-                Click <a href=\"{}\">here</a> to confirm your subscription.",
-                confirmation_link
-            ),
-            &format!(
-                "Welcome to our newsletter!\nVisit {} to confirm your subscription.",
-                confirmation_link
-            ),
-        )
+    if send_confirmation_email(&email_client, new_subscriber)
         .await
         .is_err()
     {
@@ -111,4 +96,25 @@ pub fn is_valid_name(s: &str) -> bool {
     let contains_forbidden_characters = s.chars().any(|g| forbidden_characters.contains(&g));
 
     !(is_empty_or_whitespace || is_too_long || contains_forbidden_characters)
+}
+
+pub async fn send_confirmation_email(
+    email_client: &EmailClient,
+    new_subscriber: NewSubscriber,
+) -> Result<(), reqwest::Error> {
+    let confirmation_link = "https://there-is-no-such-domain.com/subscriptions/confirm";
+    let plain_body = &format!(
+        "Welcome to our newsletter!<br />\
+                Click <a href=\"{}\">here</a> to confirm your subscription.",
+        confirmation_link
+    );
+
+    let html_body = &format!(
+        "Welcome to our newsletter!\nVisit {} to confirm your subscription.",
+        confirmation_link
+    );
+
+    email_client
+        .send_email(new_subscriber.email, "Welcome!", plain_body, html_body)
+        .await
 }
