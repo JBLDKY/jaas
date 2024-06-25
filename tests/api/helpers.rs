@@ -5,6 +5,7 @@ use uuid::Uuid;
 use jaas::configuration::{get_configuration, DatabaseSettings};
 use jaas::startup::{get_connection_pool, Application};
 use jaas::telemetry::{get_subscriber, init_subscriber};
+use wiremock::MockServer;
 
 static TRACING: Lazy<()> = Lazy::new(|| {
     let default_filter_level = "info".to_string();
@@ -24,6 +25,7 @@ static TRACING: Lazy<()> = Lazy::new(|| {
 pub struct TestApp {
     pub address: String,
     pub pool: PgPool,
+    pub email_server: MockServer,
 }
 
 impl TestApp {
@@ -41,10 +43,13 @@ impl TestApp {
 pub async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
 
+    let email_server = MockServer::start().await;
+
     let config = {
         let mut c = get_configuration().expect("Failed to read configuration");
         c.database.database_name = Uuid::new_v4().to_string();
         c.application.port = 0;
+        c.email_client.base_url = email_server.uri();
         c
     };
 
@@ -61,6 +66,7 @@ pub async fn spawn_app() -> TestApp {
     TestApp {
         address,
         pool: get_connection_pool(&config.database),
+        email_server,
     }
 }
 
