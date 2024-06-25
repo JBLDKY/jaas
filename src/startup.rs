@@ -76,7 +76,7 @@ pub fn run(
             .wrap(TracingLogger::default())
             .route("/health_check", web::get().to(health_check))
             .route("/subscriptions", web::post().to(subscribe))
-            .route("/subscriptions/confirm", web::post().to(confirm))
+            .route("/subscriptions/confirm", web::get().to(confirm))
             .app_data(pool.clone())
             .app_data(email_client.clone())
     })

@@ -1,7 +1,12 @@
-use actix_web::HttpResponse;
+use actix_web::{web, HttpResponse};
 
-#[tracing::instrument(name = "Confirm a pending subscriber")]
-pub async fn confirm() -> HttpResponse {
+#[derive(serde::Deserialize)]
+pub struct Parameters {
+    subscription_token: String,
+}
+
+#[tracing::instrument(name = "Confirm a pending subscriber", skip(_parameters))]
+pub async fn confirm(_parameters: web::Query<Parameters>) -> HttpResponse {
     HttpResponse::Ok().finish()
 }
 
@@ -10,4 +15,3 @@ pub async fn confirm() -> HttpResponse {
 //     HttpResponse::Ok().finish()
 // }
 //
-
