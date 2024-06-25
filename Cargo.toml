@@ -53,4 +53,5 @@ unicode-segmentation = "1.11.0"
 uuid = { version = "1.8.0", features = ["v4"] }
 validator = "0.16"
 wiremock = "0.5"
+linkify = "0.9"
 
